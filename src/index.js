@@ -1,65 +1,110 @@
-import { fetchBreeds, fetchCatByBreed } from "./cat-api";
-import './styles.css';
 import { Notify } from 'notiflix/build/notiflix-notify-aio';
-import SlimSelect from 'slim-select'
-import 'slim-select/dist/slimselect.css';
+import { fetchPhoto } from './pixabay-api';
+import { createMarkup } from './markup';
+import { refs } from './refs';
+import { lightbox } from './lightbox';
 
-const ref = {
-    selector: document.querySelector('.breed-select'),
-    divCatInfo: document.querySelector('.cat-info'),
-    loader: document.querySelector('.loader'),
-    error: document.querySelector('.error'),
-};
-const { selector, divCatInfo, loader, error } = ref;
+const { searchForm, gallery, btnLoadMore } = refs;
 
-loader.classList.replace('loader', 'is-hidden');
-error.classList.add('is-hidden');
-divCatInfo.classList.add('is-hidden');
-
-
-fetchBreeds()
-.then(data => {
-    const marcup = data.map(({id, name}) => `<option value=${id}>${name}</option>`).join('');
-    ref.selector.innerHTML = marcup;
-    // selector.classList.remove('is-hidden');
-    // error.classList.add('is-hidden');
-    new SlimSelect({
-        select: selector,
-    });
-    })
-.catch(onFetchError);
-
-selector.addEventListener('change', onSelectBreed);
-
-function onSelectBreed(event) {
-    loader.classList.replace('is-hidden', 'loader');
-    selector.classList.add('is-hidden');
-    
-    const breedId = event.currentTarget.value;
-    fetchCatByBreed(breedId)
-    .then(data => {
-        loader.classList.replace('loader', 'is-hidden');
-        selector.classList.remove('is-hidden');
-        // divCatInfo.classList.remove('is-hidden');
-        const { url, breeds } = data[0];
-        
-        divCatInfo.innerHTML = `<div class="box-img"><img src="${url}" alt="${breeds[0].name}" width="400"/></div><div class="box"><h1>${breeds[0].name}</h1><p>${breeds[0].description}</p><p><b>Temperament:</b> ${breeds[0].temperament}</p></div>`
-        // divCatInfo.insertAdjacentHTML("beforeend", marcup)
-        divCatInfo.classList.remove('is-hidden');
-    })
-    .catch(onFetchError);
-    
+const paramsForNotify = {
+    position: 'center-center',
+    timeout: 4000,
+    width: '400px',
+    fontSize: '24px'
 };
 
-function onFetchError(error) {
-    selector.classList.remove('is-hidden');
-    loader.classList.replace('loader', 'is-hidden');
+const perPage = 40;
+let page = 1;
+let keyOfSearchPhoto = '';
 
-    Notify.failure('Oops! Something went wrong! Try reloading the page!', {
-        position: 'center-center',
-        timeout: 5000,
-        width: '400px',
-        fontSize: '24px'
-    });
+btnLoadMore.classList.add('is-hidden');
+
+searchForm.addEventListener('submit', onSubmitForm);
+
+function onSubmitForm(event) {
+    event.preventDefault();
+
+    gallery.innerHTML = '';
+    page = 1;
+    const { searchQuery } = event.currentTarget.elements;
+    keyOfSearchPhoto = searchQuery.value
+        .trim()
+        .toLowerCase()
+        .split(' ')
+        .join('+');
+    // console.log(keyOfSearchPhoto);
+
+    if (keyOfSearchPhoto === '') {
+        Notify.info('Enter your request, please!', paramsForNotify);
+        return;
+    }
+
+    fetchPhoto(keyOfSearchPhoto, page, perPage)
+        .then(data => {
+            const searchResults = data.hits;
+            if (data.totalHits === 0) {
+                Notify.failure('Sorry, there are no images matching your search query. Please try again.', paramsForNotify);
+            } else {
+                Notify.info(`Hooray! We found ${data.totalHits} images.`, paramsForNotify);
+                // console.log(searchResults);
+                createMarkup(searchResults);
+                lightbox.refresh();
+
+            };
+            if (data.totalHits > perPage) {
+                btnLoadMore.classList.remove('is-hidden');
+                window.addEventListener('scroll', showLoadMorePage);
+            };
+            // scrollPage();
+        })
+        .catch(onFetchError);
+
+    btnLoadMore.addEventListener('click', onClickLoadMore);
+
+    event.currentTarget.reset();
 };
-   
+
+function onClickLoadMore() {
+    page += 1;
+    fetchPhoto(keyOfSearchPhoto, page, perPage)
+        .then(data => {
+            const searchResults = data.hits;
+            const numberOfPage = Math.ceil(data.totalHits / perPage);
+            
+            createMarkup(searchResults);
+            if (page === numberOfPage) {
+                btnLoadMore.classList.add('is-hidden');
+                Notify.info("We're sorry, but you've reached the end of search results.", paramsForNotify);
+                btnLoadMore.removeEventListener('click', onClickLoadMore);
+                window.removeEventListener('scroll', showLoadMorePage);
+            };
+            lightbox.refresh();
+            // scrollPage();
+        })
+        .catch(onFetchError);
+};
+
+function onFetchError() {
+    Notify.failure('Oops! Something went wrong! Try reloading the page or make another choice!', paramsForNotify);
+};
+
+// function scrollPage() {
+//     const { height: cardHeight } = gallery.firstElementChild.getBoundingClientRect();
+
+//     window.scrollBy({
+//         top: cardHeight * 2,
+//         behavior: "smooth",
+//     });
+// };
+
+function showLoadMorePage() {
+    if (checkIfEndOfPage()) {
+        onClickLoadMore();
+    };
+};
+
+function checkIfEndOfPage() {
+  return (
+    window.innerHeight + window.scrollY >= document.documentElement.scrollHeight
+  );
+}
