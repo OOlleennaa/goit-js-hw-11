@@ -1,0 +1,117 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+        Oxygen-Sans, Ubuntu, Cantarell, 'Helvetica Neue', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background-color: #fafafa;
+    color: #212121;
+    line-height: 1.5;
+}
+
+img {
+    display: block;
+    max-width: 100%;
+    border: 1px solid #0d161b;
+}
+
+h1 {
+    margin: 0;
+}
+
+.is-hidden {
+    position: absolute;
+    /* width: 1px;
+    height: 1px;
+    margin: -1px;
+    border: 0;
+    padding: 0; */
+    white-space: nowrap;
+    clip-path: inset(100%);
+    clip: rect(0 0 0 0);
+    overflow: hidden;
+}
+
+.breed-select {
+    display: none;
+    max-width: 400px;
+    margin: auto;
+}
+
+.loader {
+    font-size: 0;
+    position: relative;
+    margin: 20% auto;
+    width: 250px;
+    display: flex;
+    justify-content: space-between;
+}
+
+.loader::after,
+.loader::before {
+    content: '';
+    display: inline-block;
+    width: 80px;
+    height: 100px;
+    background-color: #19d852;
+    background-image: radial-gradient(circle 14px, #0d161b 100%, transparent 0);
+    background-repeat: no-repeat;
+    border-radius: 50%;
+    border: 1px solid #0d161b;
+    animation: eyeMove 1s infinite, blink 1s infinite;
+    /* animation: animate__heartBeat; */
+}
+
+@keyframes eyeMove {
+
+    0%{
+        background-position: 0px 0px
+    }
+    1%,50% {
+        background-position: 15px 0px
+    }
+
+    51%,
+    100% {
+        background-position: 0px 0px
+    }
+}
+
+@keyframes blink {
+
+    0% {
+        height: 50px
+    }
+
+    
+    99% {
+        height: 10px
+    }
+}
+
+.cat-info {
+    width: 1000px;
+    margin: 20px auto;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 40px;
+    background-color: #c4f5d2;
+    border: 1px solid #0baa6d;
+    border-radius: 40px;
+    box-shadow: 0px 5px 1px -1px rgba(81, 10, 173, 0.2),
+    0px 1px 1px 0px rgba(0, 0, 0, 0.14), 0px 1px 6px 0px rgba(0, 0, 0, 0.12);
+}
+
+.box-img {
+    display: flex;
+    align-items: center;
+    }
+
+.box {
+    width: 400px;
+}
