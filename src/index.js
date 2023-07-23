@@ -32,7 +32,7 @@ function onSubmitForm(event) {
         .toLowerCase()
         .split(' ')
         .join('+');
-    // console.log(keyOfSearchPhoto);
+    
 
     if (keyOfSearchPhoto === '') {
         Notify.info('Enter your request, please!', paramsForNotify);
@@ -79,7 +79,7 @@ function onClickLoadMore() {
                 window.removeEventListener('scroll', showLoadMorePage);
             };
             lightbox.refresh();
-            // scrollPage();
+            
         })
         .catch(onFetchError);
 };
